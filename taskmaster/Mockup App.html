@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <style>
+        body {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        height: 100%;
+        overflow: hidden;
+        }
+
+        html {
+        height: 100%;
+        }
+
+        * {
+        box-sizing: border-box;
+        }
+
+        .phone-frame {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+        padding: 20px;
+        }
+
+        .phone-device {
+        width: 100%;
+        max-width: 390px;
+        height: 100%;
+        max-height: 844px;
+        background: #000;
+        border-radius: 50px;
+        padding: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 0 12px #1a1a1a,
+                    0 0 0 14px #333;
+        position: relative;
+        }
+
+        .phone-notch {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 30px;
+        background: #000;
+        border-radius: 0 0 20px 20px;
+        z-index: 10;
+        }
+
+        .phone-screen {
+        width: 100%;
+        height: 100%;
+        background: #f8f9fa;
+        border-radius: 40px;
+        overflow: hidden;
+        position: relative;
+        }
+
+        .app-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #f8f9fa;
+        }
+
+        .app-header {
+        padding: 50px 20px 20px 20px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        }
+
+        .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        }
+
+        .app-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        }
+
+        .notification-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        }
+
+        .header-greeting {
+        font-size: 14px;
+        opacity: 0.9;
+        margin: 0;
+        }
+
+        .content-area {
+        flex: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+        }
+
+        .tab-content {
+        display: none;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+        display: block;
+        }
+
+        @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+
+        /* Schedule Tab */
+        .date-selector {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        }
+
+        .date-card {
+        min-width: 60px;
+        padding: 12px 8px;
+        background: white;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        }
+
+        .date-card:hover {
+        transform: translateY(-2px);
+        }
+
+        .date-card.active {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border-color: #6366f1;
+        }
+
+        .date-card .day {
+        font-size: 11px;
+        opacity: 0.7;
+        margin-bottom: 4px;
+        }
+
+        .date-card .date {
+        font-size: 18px;
+        font-weight: 700;
+        }
+
+        .priority-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        }
+
+        .priority-high {
+        background: #fee2e2;
+        color: #dc2626;
+        }
+
+        .priority-medium {
+        background: #fef3c7;
+        color: #d97706;
+        }
+
+        .priority-low {
+        background: #dbeafe;
+        color: #2563eb;
+        }
+
+        .task-card {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 4px solid #6366f1;
+        }
+
+        .task-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+        }
+
+        .task-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-top: 2px;
+        }
+
+        .task-checkbox.checked {
+        background: #6366f1;
+        border-color: #6366f1;
+        position: relative;
+        }
+
+        .task-checkbox.checked::after {
+        content: '✓';
+        color: white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+        }
+
+        .task-info {
+        flex: 1;
+        }
+
+        .task-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 4px 0;
+        }
+
+        .task-time {
+        font-size: 13px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        }
+
+        .ai-badge {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        }
+
+        .add-task-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        transition: transform 0.2s;
+        z-index: 5;
+        }
+
+        .add-task-btn:hover {
+        transform: scale(1.1);
+        }
+
+        .add-task-btn:active {
+        transform: scale(0.95);
+        }
+
+        /* AI Assistant Tab */
+        .ai-chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 40px);
+        }
+
+        .ai-messages {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        }
+
+        .ai-message {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+        animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+
+        .ai-message.user {
+        flex-direction: row-reverse;
+        }
+
+        .ai-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        }
+
+        .ai-message.assistant .ai-avatar {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        .ai-message.user .ai-avatar {
+        background: #e5e7eb;
+        }
+
+        .ai-message-content {
+        background: white;
+        padding: 12px 14px;
+        border-radius: 16px;
+        max-width: 75%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .ai-message.user .ai-message-content {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        }
+
+        .ai-message-text {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.4;
+        }
+
+        .ai-suggestions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+        }
+
+        .ai-suggestion-btn {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #6366f1;
+        cursor: pointer;
+        transition: all 0.2s;
+        }
+
+        .ai-suggestion-btn:hover {
+        background: #f3f4f6;
+        border-color: #6366f1;
+        }
+
+        .ai-input-wrapper {
+        display: flex;
+        gap: 10px;
+        background: white;
+        border-radius: 24px;
+        padding: 10px 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #1f2937;
+        background: transparent;
+        }
+
+        .ai-send-btn {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+        }
+
+        .ai-send-btn:hover {
+        transform: scale(1.05);
+        }
+
+        /* Settings Tab */
+        .settings-section {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+        }
+
+        .settings-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 16px 0;
+        }
+
+        .settings-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+        }
+
+        .settings-item:last-child {
+        border-bottom: none;
+        }
+
+        .settings-item-label {
+        font-size: 14px;
+        color: #1f2937;
+        }
+
+        .toggle-switch {
+        width: 48px;
+        height: 28px;
+        background: #e5e7eb;
+        border-radius: 14px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+        background: #6366f1;
+        }
+
+        .toggle-switch::after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: left 0.3s;
+        }
+
+        .toggle-switch.active::after {
+        left: 22px;
+        }
+
+        .settings-value {
+        font-size: 14px;
+        color: #6b7280;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 12px 0 20px 0;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        }
+
+        .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        padding: 8px 20px;
+        border-radius: 12px;
+        transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+        background: #f3f4f6;
+        }
+
+        .nav-item.active {
+        color: #6366f1;
+        }
+
+        .nav-icon {
+        font-size: 24px;
+        }
+
+        .nav-label {
+        font-size: 11px;
+        font-weight: 500;
+        }
+
+        .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+        }
+
+        .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+        font-size: 14px;
+        }
+    </style>
+    <style>@view-transition { navigation: auto; }</style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+    </head>
+    <body>
+    <div class="phone-frame">
+    <div class="phone-device">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+        <div class="app-container">
+        <header class="app-header">
+        <div class="header-top">
+            <h1 class="app-title" id="app-name">TaskMaster</h1>
+            <div class="notification-icon">
+            🔔
+            </div>
+        </div>
+        <p class="header-greeting">Welcome back! Let's organize your day 🚀</p>
+        </header>
+        <main class="content-area"><!-- Schedule Tab -->
+        <div class="tab-content active" id="schedule-tab">
+            <div class="date-selector">
+            <div class="date-card">
+            <div class="day">
+            MON
+            </div>
+            <div class="date">
+            12
+            </div>
+            </div>
+            <div class="date-card active">
+            <div class="day">
+            TUE
+            </div>
+            <div class="date">
+            13
+            </div>
+            </div>
+            <div class="date-card">
+            <div class="day">
+            WED
+            </div>
+            <div class="date">
+            14
+            </div>
+            </div>
+            <div class="date-card">
+            <div class="day">
+            THU
+            </div>
+            <div class="date">
+            15
+            </div>
+            </div>
+            <div class="date-card">
+            <div class="day">
+            FRI
+            </div>
+            <div class="date">
+            16
+            </div>
+            </div>
+            </div>
+            <div id="tasks-list">
+            <div class="task-card"><span class="priority-badge priority-high">High Priority</span>
+            <div class="task-header">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <div class="task-info">
+                <h3 class="task-title">Complete project proposal</h3>
+                <p class="task-time">⏰ 9:00 AM - 11:00 AM</p><span class="ai-badge">🤖 AI Prioritized</span>
+            </div>
+            </div>
+            </div>
+            <div class="task-card"><span class="priority-badge priority-high">High Priority</span>
+            <div class="task-header">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <div class="task-info">
+                <h3 class="task-title">Team meeting - Q4 Planning</h3>
+                <p class="task-time">⏰ 2:00 PM - 3:30 PM</p><span class="ai-badge">🤖 AI Prioritized</span>
+            </div>
+            </div>
+            </div>
+            <div class="task-card"><span class="priority-badge priority-medium">Medium Priority</span>
+            <div class="task-header">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <div class="task-info">
+                <h3 class="task-title">Review design mockups</h3>
+                <p class="task-time">⏰ 4:00 PM - 5:00 PM</p>
+            </div>
+            </div>
+            </div>
+            <div class="task-card"><span class="priority-badge priority-low">Low Priority</span>
+            <div class="task-header">
+            <div class="task-checkbox" onclick="toggleTask(this)"></div>
+            <div class="task-info">
+                <h3 class="task-title">Respond to emails</h3>
+                <p class="task-time">⏰ 5:30 PM - 6:00 PM</p>
+            </div>
+            </div>
+            </div>
+            </div><button class="add-task-btn" onclick="showAddTaskMessage()">+</button>
+        </div><!-- AI Assistant Tab -->
+        <div class="tab-content" id="ai-tab">
+            <div class="ai-chat-container">
+            <div class="ai-messages" id="ai-messages">
+            <div class="ai-message assistant">
+            <div class="ai-avatar">
+                🤖
+            </div>
+            <div class="ai-message-content">
+                <p class="ai-message-text">Hi! I'm your AI assistant. I can help you prioritize tasks, manage your schedule, and provide productivity insights. How can I help you today?</p>
+            </div>
+            </div>
+            </div>
+            <div class="ai-suggestions"><button class="ai-suggestion-btn" onclick="sendAISuggestion('Prioritize my tasks')">Prioritize my tasks</button> <button class="ai-suggestion-btn" onclick="sendAISuggestion('Optimize my schedule')">Optimize schedule</button> <button class="ai-suggestion-btn" onclick="sendAISuggestion('Weekly summary')">Weekly summary</button>
+            </div>
+            <form class="ai-input-wrapper" onsubmit="sendAIMessage(event)"><label for="ai-input" style="display: none;">AI message input</label> <input type="text" id="ai-input" class="ai-input" placeholder="Ask me anything..." autocomplete="off"> <button type="submit" class="ai-send-btn" aria-label="Send message">
+            <svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line> <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg></button>
+            </form>
+            </div>
+        </div><!-- Settings Tab -->
+        <div class="tab-content" id="settings-tab">
+            <div class="settings-section">
+            <h2 class="settings-title">Notifications</h2>
+            <div class="settings-item"><span class="settings-item-label">Push Notifications</span>
+            <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Task Reminders</span>
+            <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Daily Summary</span>
+            <div class="toggle-switch" onclick="toggleSetting(this)"></div>
+            </div>
+            </div>
+            <div class="settings-section">
+            <h2 class="settings-title">AI Assistant</h2>
+            <div class="settings-item"><span class="settings-item-label">AI Auto-Prioritization</span>
+            <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Smart Suggestions</span>
+            <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Learning Mode</span> <span class="settings-value">Adaptive</span>
+            </div>
+            </div>
+            <div class="settings-section">
+            <h2 class="settings-title">Display</h2>
+            <div class="settings-item"><span class="settings-item-label">Dark Mode</span>
+            <div class="toggle-switch" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Calendar View</span> <span class="settings-value">Week</span>
+            </div>
+            </div>
+            <div class="settings-section">
+            <h2 class="settings-title">Account</h2>
+            <div class="settings-item"><span class="settings-item-label">Profile</span> <span class="settings-value">Edit →</span>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Sync Settings</span> <span class="settings-value">Cloud Enabled</span>
+            </div>
+            <div class="settings-item"><span class="settings-item-label">Version</span> <span class="settings-value">2.1.0</span>
+            </div>
+            </div>
+        </div>
+        </main>
+        <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('schedule')">
+            <div class="nav-icon">
+            📅
+            </div>
+            <div class="nav-label" id="nav-schedule">
+            Schedule
+            </div>
+        </div>
+        <div class="nav-item" onclick="switchTab('ai')">
+            <div class="nav-icon">
+            🤖
+            </div>
+            <div class="nav-label" id="nav-ai">
+            AI Assistant
+            </div>
+        </div>
+        <div class="nav-item" onclick="switchTab('settings')">
+            <div class="nav-icon">
+            ⚙️
+            </div>
+            <div class="nav-label" id="nav-settings">
+            Settings
+            </div>
+        </div>
+        </nav>
+        </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        const defaultConfig = {
+        app_name: "TaskMaster",
+        schedule_title: "Schedule",
+        ai_assistant_title: "AI Assistant",
+        settings_title: "Settings",
+        primary_color: "#6366f1",
+        secondary_color: "#8b5cf6",
+        background_color: "#f8f9fa",
+        text_color: "#1f2937",
+        accent_color: "#6b7280"
+        };
+
+        async function onConfigChange(config) {
+        document.getElementById('app-name').textContent = config.app_name || defaultConfig.app_name;
+        document.getElementById('nav-schedule').textContent = config.schedule_title || defaultConfig.schedule_title;
+        document.getElementById('nav-ai').textContent = config.ai_assistant_title || defaultConfig.ai_assistant_title;
+        document.getElementById('nav-settings').textContent = config.settings_title || defaultConfig.settings_title;
+
+        const primaryColor = config.primary_color || defaultConfig.primary_color;
+        const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+        const backgroundColor = config.background_color || defaultConfig.background_color;
+        const textColor = config.text_color || defaultConfig.text_color;
+
+        document.querySelector('.app-header').style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+        document.querySelector('.add-task-btn').style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+        document.querySelector('.ai-send-btn').style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+        
+        document.querySelectorAll('.date-card.active').forEach(el => {
+            el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+        });
+
+        document.querySelector('.content-area').style.background = backgroundColor;
+        document.querySelector('.app-container').style.background = backgroundColor;
+        }
+
+        if (window.elementSdk) {
+        window.elementSdk.init({
+            defaultConfig,
+            onConfigChange,
+            mapToCapabilities: (config) => ({
+            recolorables: [
+                {
+                get: () => config.primary_color || defaultConfig.primary_color,
+                set: (value) => {
+                    config.primary_color = value;
+                    window.elementSdk.setConfig({ primary_color: value });
+                }
+                },
+                {
+                get: () => config.secondary_color || defaultConfig.secondary_color,
+                set: (value) => {
+                    config.secondary_color = value;
+                    window.elementSdk.setConfig({ secondary_color: value });
+                }
+                },
+                {
+                get: () => config.background_color || defaultConfig.background_color,
+                set: (value) => {
+                    config.background_color = value;
+                    window.elementSdk.setConfig({ background_color: value });
+                }
+                },
+                {
+                get: () => config.text_color || defaultConfig.text_color,
+                set: (value) => {
+                    config.text_color = value;
+                    window.elementSdk.setConfig({ text_color: value });
+                }
+                },
+                {
+                get: () => config.accent_color || defaultConfig.accent_color,
+                set: (value) => {
+                    config.accent_color = value;
+                    window.elementSdk.setConfig({ accent_color: value });
+                }
+                }
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+            }),
+            mapToEditPanelValues: (config) => new Map([
+            ["app_name", config.app_name || defaultConfig.app_name],
+            ["schedule_title", config.schedule_title || defaultConfig.schedule_title],
+            ["ai_assistant_title", config.ai_assistant_title || defaultConfig.ai_assistant_title],
+            ["settings_title", config.settings_title || defaultConfig.settings_title]
+            ])
+        });
+        }
+
+        function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        if (tab === 'schedule') {
+            document.getElementById('schedule-tab').classList.add('active');
+            document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+        } else if (tab === 'ai') {
+            document.getElementById('ai-tab').classList.add('active');
+            document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+        } else if (tab === 'settings') {
+            document.getElementById('settings-tab').classList.add('active');
+            document.querySelector('.nav-item:nth-child(3)').classList.add('active');
+        }
+        }
+
+        function toggleTask(checkbox) {
+        checkbox.classList.toggle('checked');
+        }
+
+        function toggleSetting(toggle) {
+        toggle.classList.toggle('active');
+        }
+
+        function showAddTaskMessage() {
+        const messagesDiv = document.getElementById('ai-messages');
+        addAIMessage('I want to add a new task', 'user');
+        
+        setTimeout(() => {
+            addAIMessage('Great! I can help you add a task. What would you like to schedule?', 'assistant');
+        }, 1000);
+        
+        switchTab('ai');
+        }
+
+        const aiResponses = {
+        'prioritize': "I've analyzed your schedule and prioritized your tasks based on deadlines, importance, and dependencies. Your high-priority items are at the top of your schedule!",
+        'optimize': "Based on your work patterns, I recommend moving your creative tasks to morning hours and administrative tasks to the afternoon. This matches your peak productivity times.",
+        'summary': "This week you completed 23 tasks with an 89% completion rate. Your most productive day was Tuesday. Keep up the great work! 🎉",
+        'default': "I'm here to help! I can prioritize your tasks, optimize your schedule, provide productivity insights, and answer questions about your tasks."
+        };
+
+        function sendAIMessage(event) {
+        event.preventDefault();
+        
+        const input = document.getElementById('ai-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        addAIMessage(message, 'user');
+        input.value = '';
+        
+        setTimeout(() => {
+            let response = aiResponses.default;
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('prioritize') || lowerMessage.includes('priority')) {
+            response = aiResponses.prioritize;
+            } else if (lowerMessage.includes('optimize') || lowerMessage.includes('schedule')) {
+            response = aiResponses.optimize;
+            } else if (lowerMessage.includes('summary') || lowerMessage.includes('week')) {
+            response = aiResponses.summary;
+            }
+            
+            addAIMessage(response, 'assistant');
+        }, 1000);
+        }
+
+        function sendAISuggestion(message) {
+        addAIMessage(message, 'user');
+        
+        setTimeout(() => {
+            let response = aiResponses.default;
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('prioritize')) {
+            response = aiResponses.prioritize;
+            } else if (lowerMessage.includes('optimize')) {
+            response = aiResponses.optimize;
+            } else if (lowerMessage.includes('summary')) {
+            response = aiResponses.summary;
+            }
+            
+            addAIMessage(response, 'assistant');
+        }, 1000);
+        }
+
+        function addAIMessage(text, sender) {
+        const messagesDiv = document.getElementById('ai-messages');
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `ai-message ${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'ai-avatar';
+        avatar.textContent = sender === 'assistant' ? '🤖' : '👤';
+        
+        const content = document.createElement('div');
+        content.className = 'ai-message-content';
+        
+        const p = document.createElement('p');
+        p.className = 'ai-message-text';
+        p.textContent = text;
+        content.appendChild(p);
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content);
+        messagesDiv.appendChild(messageDiv);
+        
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4734eef769dc13',t:'MTc2NDEzNzI1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
